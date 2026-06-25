@@ -99,6 +99,23 @@
   .btn.exp{background:var(--yellow)}
   .btn.rst{background:var(--pink);color:#fff}
 
+  /* easter egg */
+  #egg{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;overflow:hidden}
+  #egg.show{display:flex;animation:psych .85s linear infinite}
+  #egg .egg-text{font-weight:900;font-size:clamp(2.8rem,17vw,7.5rem);text-transform:uppercase;color:#fff;
+    -webkit-text-stroke:5px #000;letter-spacing:-3px;line-height:.9;text-align:center;
+    text-shadow:8px 8px 0 #000;animation:wobble .42s ease-in-out infinite;will-change:transform}
+  #egg .ring2{position:absolute;inset:-40%;background:
+    repeating-conic-gradient(#000 0 12deg,transparent 12deg 24deg);opacity:.18;animation:spin 3s linear infinite}
+  @keyframes psych{
+    0%{background:#ff0040}14%{background:#ff8a00}28%{background:#ffe600}42%{background:#00ff62}
+    57%{background:#00e5ff}71%{background:#4d4dff}85%{background:#c400ff}100%{background:#ff0040}}
+  @keyframes wobble{0%,100%{transform:rotate(-7deg) scale(1)}50%{transform:rotate(7deg) scale(1.18)}}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @media (prefers-reduced-motion:reduce){
+    #egg.show{animation:none;background:#c400ff}
+    #egg .egg-text,#egg .ring2{animation:none}}
+
   .toast{position:fixed;left:50%;bottom:calc(104px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(14px);
     background:var(--ink);color:#fff;padding:10px 18px;font-weight:900;font-size:.82rem;text-transform:uppercase;
     border:2px solid var(--ink);box-shadow:4px 4px 0 var(--pink);opacity:0;pointer-events:none;transition:.22s;z-index:50}
@@ -126,6 +143,7 @@
   <button class="btn rst" onclick="resetAll()"><span class="ico">↺</span>Azzera</button>
 </div></div>
 <input type="file" id="file" accept="application/json" onchange="importData(event)">
+<div id="egg"><div class="ring2"></div><div class="egg-text">stocazzooo</div></div>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -211,7 +229,10 @@ function renderList(){
 }
 function render(){renderTabs();renderProgress();renderList();}
 function goto(i){current=i;render();}
-function toggle(e){const k=key(current,e);state[k].done=!state[k].done;render();save();}
+function totalDone(){let c=0;PROGRAM.forEach((day,d)=>day.exercises.forEach((_,e)=>{if(state[key(d,e)].done)c++;}));return c;}
+function egg(){const el=$("egg");el.classList.add("show");try{if(navigator.vibrate)navigator.vibrate([60,40,60,40,90]);}catch(e){}clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove("show"),1700);}
+function toggle(e){const k=key(current,e);const was=state[k].done;state[k].done=!state[k].done;render();save();
+  if(!was&&state[k].done){const t=totalDone();if(t>0&&t%3===0)egg();}}
 function setWeight(e,v){state[key(current,e)].weight=v;save();}
 
 function toast(m){const t=$("toast");t.textContent=m;t.classList.add("show");clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove("show"),2200);}
