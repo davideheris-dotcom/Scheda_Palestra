@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Scheda">
+<meta name="theme-color" content="#ffffff">
+<title>Scheda Palestra</title>
+<style>
+  :root{
+    --bg:#ffffff;--ink:#000000;--mut:#767676;--line:#000000;
+    --accent:#ceff00;--accent-ink:#000000;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+    --wide:ui-sans-serif,system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none}
+  input,textarea{-webkit-user-select:text;user-select:text}
+  html,body{margin:0}
+  body{
+    font-family:var(--wide);background:var(--bg);color:var(--ink);min-height:100vh;line-height:1.35;
+    padding:calc(20px + env(safe-area-inset-top)) 16px calc(188px + env(safe-area-inset-bottom));
+    -webkit-text-size-adjust:100%;
+  }
+  .wrap{max-width:600px;margin:0 auto}
+
+  header{margin:0 0 22px;border-bottom:3px solid var(--line);padding-bottom:16px}
+  header h1{font-size:2rem;margin:0;font-weight:900;text-transform:uppercase;letter-spacing:.13em;line-height:.98}
+  .sub{margin:10px 0 0;font-family:var(--mono);font-size:.72rem;font-weight:500;text-transform:uppercase;letter-spacing:.18em;color:var(--mut)}
+  .saved-dot{display:inline-block;margin-top:12px;font-family:var(--mono);font-size:.68rem;font-weight:700;text-transform:uppercase;
+    letter-spacing:.14em;background:var(--accent);color:var(--accent-ink);padding:2px 8px;opacity:0;transition:opacity .25s}
+  .saved-dot.show{opacity:1}
+
+  .tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin:20px 0;border:2px solid var(--line)}
+  .tab{border:none;border-right:2px solid var(--line);cursor:pointer;font-family:var(--wide);font-weight:900;font-size:1rem;
+    background:var(--bg);color:var(--ink);padding:13px 4px;text-transform:uppercase;letter-spacing:.06em;transition:background .12s,color .12s}
+  .tab:last-child{border-right:none}
+  .tab small{display:block;font-size:.58rem;font-weight:600;margin-top:3px;font-family:var(--mono);letter-spacing:.05em;color:inherit}
+  .tab.active{background:var(--ink);color:var(--bg)}
+  .tab.active small{color:var(--accent)}
+  .tab:active{background:var(--accent);color:var(--accent-ink)}
+
+  .progress{margin-bottom:24px}
+  .progress .ptop{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+  .progress .ptop b{font-size:.95rem;font-weight:900;text-transform:uppercase;letter-spacing:.1em}
+  .progress .ptop span{font-family:var(--mono);font-weight:700;font-size:.8rem;letter-spacing:.05em}
+  .pbar{height:14px;border:2px solid var(--line);background:var(--bg);position:relative;overflow:hidden}
+  .pbar i{display:block;height:100%;background:var(--accent);width:0;transition:width .35s ease}
+  .pbar em{position:absolute;inset:0;display:flex;align-items:center;justify-content:flex-end;padding-right:6px;font-style:normal;
+    font-weight:700;font-size:.62rem;font-family:var(--mono);mix-blend-mode:difference;color:#fff}
+
+  .ex{border-bottom:2px solid var(--line);padding:18px 0}
+  .ex:first-child{border-top:2px solid var(--line)}
+  .ex-top{display:flex;align-items:flex-start;gap:14px}
+  .check{flex:0 0 34px;width:34px;height:34px;border:2px solid var(--ink);cursor:pointer;background:var(--bg);
+    display:flex;align-items:center;justify-content:center;transition:background .12s}
+  .check svg{width:22px;height:22px;stroke:var(--ink);stroke-width:3.5;fill:none;opacity:0;stroke-linecap:round;stroke-linejoin:round}
+  .ex.done .check{background:var(--accent)}
+  .ex.done .check svg{opacity:1}
+  .ex-head{flex:1;min-width:0}
+  .ex-name{font-weight:900;font-size:1.02rem;margin:0;text-transform:uppercase;letter-spacing:.05em;line-height:1.12}
+  .ex.done .ex-name{color:var(--mut);text-decoration:line-through;text-decoration-thickness:2px}
+  .ex-scheme{font-family:var(--mono);font-size:.78rem;font-weight:500;margin-top:7px;white-space:pre-line;color:var(--mut);letter-spacing:.02em}
+
+  .sets{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:14px 0 0 48px}
+  .sets .lbl{font-family:var(--mono);font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.16em;color:var(--mut);margin-right:4px}
+  .setdot{width:30px;height:30px;border:2px solid var(--ink);background:var(--bg);cursor:pointer;font-family:var(--mono);
+    font-weight:700;font-size:.76rem;color:var(--ink);transition:background .1s,color .1s}
+  .setdot.on{background:var(--accent);color:var(--accent-ink)}
+  .setdot:active{opacity:.6}
+
+  .field{display:flex;align-items:flex-start;gap:12px;margin:12px 0 0 48px}
+  .field label{font-family:var(--mono);font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.16em;color:var(--mut);padding-top:8px;flex:0 0 40px}
+  .field input,.field textarea{flex:1;min-width:0;font-family:var(--mono);font-weight:500;font-size:16px;color:var(--ink);
+    border:none;border-bottom:2px solid var(--ink);outline:none;padding:6px 2px;background:transparent;resize:none;letter-spacing:.02em}
+  .field input:focus,.field textarea:focus{border-bottom-color:var(--accent);background:linear-gradient(var(--accent),var(--accent)) bottom/100% 0 no-repeat}
+  .field textarea{line-height:1.35}
+  .field input::placeholder,.field textarea::placeholder{color:#b0b0b0;font-weight:500}
+
+  .dock{position:fixed;left:0;right:0;bottom:0;background:var(--bg);border-top:3px solid var(--line);
+    padding:12px 16px calc(12px + env(safe-area-inset-bottom))}
+  .dock .inner{max-width:600px;margin:0 auto}
+  .timer{border:2px solid var(--line);padding:8px;margin-bottom:10px}
+  .timer.run{border-color:var(--ink);background:var(--bg)}
+  .timer.done{animation:tdone .22s steps(1) 6}
+  @keyframes tdone{0%{background:var(--accent)}50%{background:var(--bg)}100%{background:var(--accent)}}
+  .presets{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:8px}
+  .preset{border:2px solid var(--ink);background:var(--bg);cursor:pointer;font-family:var(--mono);font-weight:700;font-size:.8rem;
+    padding:8px 2px;letter-spacing:.05em;transition:background .1s,color .1s}
+  .preset:active{background:var(--accent);color:var(--accent-ink)}
+  .tctrl{display:flex;align-items:stretch;gap:6px}
+  .tctrl .tbtn{border:2px solid var(--ink);background:var(--bg);cursor:pointer;font-family:var(--mono);font-weight:800;font-size:.9rem;
+    padding:8px 0;flex:1;transition:background .1s,color .1s}
+  .tctrl .tbtn:active{background:var(--ink);color:var(--bg)}
+  .tctrl .time{flex:2.3;text-align:center;font-family:var(--mono);font-weight:800;font-size:1.55rem;letter-spacing:.04em;
+    border:2px solid var(--ink);padding:4px 0;cursor:pointer;background:var(--bg)}
+  .timer.run .time{background:var(--accent)}
+  .tctrl .time:active{opacity:.7}
+
+  .bar{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+  .btn{border:2px solid var(--ink);cursor:pointer;font-family:var(--mono);font-weight:700;font-size:.7rem;padding:11px 4px;color:var(--ink);
+    background:var(--bg);text-transform:uppercase;letter-spacing:.1em;display:flex;flex-direction:column;align-items:center;gap:4px;transition:background .1s,color .1s}
+  .btn:active{background:var(--ink);color:var(--bg)}
+  .btn .ico{font-size:1rem;line-height:1}
+
+  /* easter egg (intentionally overrides the minimal theme) */
+  #egg{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;overflow:hidden}
+  #egg.show{display:flex;animation:psych .85s linear infinite}
+  #egg .egg-text{font-weight:900;font-size:clamp(2.8rem,17vw,7.5rem);text-transform:uppercase;color:#fff;-webkit-text-stroke:5px #000;
+    letter-spacing:-3px;line-height:.9;text-align:center;text-shadow:8px 8px 0 #000;animation:wobble .42s ease-in-out infinite;will-change:transform}
+  #egg .ring2{position:absolute;inset:-40%;background:repeating-conic-gradient(#000 0 12deg,transparent 12deg 24deg);opacity:.18;animation:spin 3s linear infinite}
+  @keyframes psych{0%{background:#ff0040}14%{background:#ff8a00}28%{background:#ffe600}42%{background:#00ff62}57%{background:#00e5ff}71%{background:#4d4dff}85%{background:#c400ff}100%{background:#ff0040}}
+  @keyframes wobble{0%,100%{transform:rotate(-7deg) scale(1)}50%{transform:rotate(7deg) scale(1.18)}}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @media (prefers-reduced-motion:reduce){#egg.show{animation:none;background:#c400ff}#egg .egg-text,#egg .ring2{animation:none}.timer.done{animation:none;background:var(--accent)}}
+
+  .toast{position:fixed;left:50%;bottom:calc(178px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(14px);
+    background:var(--ink);color:var(--accent);padding:9px 18px;font-family:var(--mono);font-weight:700;font-size:.74rem;text-transform:uppercase;
+    letter-spacing:.12em;opacity:0;pointer-events:none;transition:.22s;z-index:60}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  input[type=file]{display:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Scheda<br>Palestra</h1>
+    <p class="sub">serie · note · timer recupero</p>
+    <span class="saved-dot" id="savedDot">salvato</span>
+  </header>
+  <div class="tabs" id="tabs"></div>
+  <div class="progress" id="progress"></div>
+  <div id="list"></div>
+</div>
+
+<div class="dock"><div class="inner">
+  <div class="timer" id="timerCard">
+    <div class="presets">
+      <button class="preset" onclick="tStart(60)">1:00</button>
+      <button class="preset" onclick="tStart(90)">1:30</button>
+      <button class="preset" onclick="tStart(120)">2:00</button>
+      <button class="preset" onclick="tStart(180)">3:00</button>
+    </div>
+    <div class="tctrl">
+      <button class="tbtn" onclick="tAdd(-15)">−15</button>
+      <div class="time" id="tTime" onclick="tToggle()">0:00</div>
+      <button class="tbtn" onclick="tAdd(15)">+15</button>
+      <button class="tbtn" onclick="tStop()">↺</button>
+    </div>
+  </div>
+  <div class="bar">
+    <button class="btn" onclick="document.getElementById('file').click()"><span class="ico">↧</span>Importa</button>
+    <button class="btn" onclick="exportData()"><span class="ico">↥</span>Backup</button>
+    <button class="btn" onclick="resetAll()"><span class="ico">↺</span>Azzera</button>
+  </div>
+</div></div>
+
+<input type="file" id="file" accept="application/json" onchange="importData(event)">
+<div id="egg"><div class="ring2"></div><div class="egg-text">stocazzooo</div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const PROGRAM = [
+  { day:"Giorno 1", exercises:[
+    {n:"Squat", s:"6×6  +60 kg  (+5 kg ogni 2 set)", sets:6},
+    {n:"Pressa", s:"4×10", sets:4},
+    {n:"Leg extension", s:"4×16  mono lato", sets:4},
+    {n:"Pull esplosivo (non consecutivo)", s:"4×3", sets:4},
+    {n:"Lat machine presa neutra", s:"3×10", sets:3},
+    {n:"Pulley", s:"4×12  +1\" iso addome", sets:4},
+    {n:"Panca manubri", s:"6×6", sets:6},
+    {n:"Croci ai cavi alti", s:"4×12", sets:4},
+  ]},
+  { day:"Giorno 2", exercises:[
+    {n:"Trazioni (chin) – progressione", s:"6×4 +12.5 (sett 1-2)\n5×5 +12.5 (sett 3)\n4×6 +12.5 (sett 4)\n4×4 +15 kg (sett 5)\n4×5 +15 kg (sett 6)", sets:6},
+    {n:"Dip – progressione", s:"6×4 +20 kg\n5×5 +20 kg\n4×4 +25 kg\n4×5 +25 kg\n4×6 +25 kg", sets:6},
+    {n:"Trazioni da 120°", s:"4×MAX +5 kg · aggancia il mento", sets:4},
+    {n:"Push up", s:"4×10 +10 kg · 2\" iso giù", sets:4},
+    {n:"Military press", s:"5×5", sets:5},
+    {n:"Lento avanti", s:"4×10", sets:4},
+    {n:"Bicipiti", s:"4×MAX", sets:4},
+    {n:"Tricipiti", s:"4×MAX", sets:4},
+  ]},
+  { day:"Giorno 3", exercises:[
+    {n:"Trazione triplo fermo 1\" (120°-fronte-chiusura) chin", s:"5×3 (1) · 6×3 (2) · 7×3 (3) · 4×4 (4-5) · 5×4 (6)", sets:5},
+    {n:"Isocinetica 3\"-3\"", s:"4×3  +5 kg", sets:4},
+    {n:"Dip triplo fermo 1\" (120°-90°-120°)", s:"6×4  ·  10 kg", sets:6},
+    {n:"Isocinetica 3\"-3\"", s:"3×3  ·  15 kg", sets:3},
+    {n:"1×MAX BW no fermo", s:"RIR 1", sets:1},
+    {n:"Australian zavorrati isocin. 4\"-4\"", s:"4×8", sets:4},
+    {n:"Rematore manubrio singolo", s:"4×8", sets:4},
+    {n:"Lat machine presa prona", s:"6×6", sets:6},
+    {n:"Push up a terra ecc. (3\" a terra, 1\" fermo)", s:"4×MAX", sets:4},
+    {n:"Alzate laterali manubri/cavo", s:"4×12", sets:4},
+    {n:"Curl bilanciere EZ", s:"7-7-7  ×3 giri", sets:3},
+  ]},
+  { day:"Giorno 4", exercises:[
+    {n:"Squat fermo 2\" in buca", s:"8×3 60kg (1) · 10×3 60kg (2)\n8×3 65kg (2) · 10×3 65kg (3)\n8×3 70kg (4) · 10×3 70kg (5)\n5×5 60kg (6)", sets:8},
+    {n:"Box squat", s:"3×RIR1 · 55kg (1-2) · 60kg (3-4) · 65kg (5-6)", sets:3},
+    {n:"Bulgari al multipower", s:"1×10 · 1×8 · 1×6 · 1×4  (+5 kg nelle serie)", sets:4},
+    {n:"Leg curl", s:"4×20 (1-2) · 4×15 (3-4) · 4×10 (5-6)", sets:4},
+    {n:"Adduttori", s:"4×15", sets:4},
+    {n:"Abduttori ecc. 4\" F1\"", s:"4×8", sets:4},
+    {n:"Panca inclinata 30° manubri", s:"4×8", sets:4},
+    {n:"T-raises", s:"5×10-12 · manubri 3-4 kg", sets:5},
+  ]},
+];
+
+const STORE_KEY="scheda-palestra-v1";
+let state={}, current=0;
+const key=(d,e)=>d+"-"+e;
+const $=id=>document.getElementById(id);
+
+function load(){ try{ const r=localStorage.getItem(STORE_KEY); if(r){const o=JSON.parse(r); if(o&&typeof o==="object") state=o;} }catch(e){} }
+function save(){ try{ localStorage.setItem(STORE_KEY,JSON.stringify(state)); flashSaved(); }catch(e){} }
+let savedT;
+function flashSaved(){ const d=$("savedDot"); d.classList.add("show"); clearTimeout(savedT); savedT=setTimeout(()=>d.classList.remove("show"),1200); }
+
+function initState(){
+  PROGRAM.forEach((day,d)=>day.exercises.forEach((ex,e)=>{
+    const k=key(d,e), cur=state[k], n=ex.sets||1; let sets;
+    if(cur && Array.isArray(cur.sets)){ sets=cur.sets.slice(0,n); while(sets.length<n) sets.push(false); }
+    else if(cur && typeof cur.done!=="undefined"){ sets=Array(n).fill(!!cur.done); }
+    else sets=Array(n).fill(false);
+    state[k]={sets, weight:(cur&&cur.weight)||"", note:(cur&&cur.note)||""};
+  }));
+}
+
+function exDone(d,e){ const s=state[key(d,e)].sets; return s.length>0 && s.every(Boolean); }
+function countDone(d){ return PROGRAM[d].exercises.reduce((a,_,e)=>a+(exDone(d,e)?1:0),0); }
+function totalDone(){ let c=0; PROGRAM.forEach((day,d)=>day.exercises.forEach((_,e)=>{ if(exDone(d,e)) c++; })); return c; }
+
+function renderTabs(){
+  $("tabs").innerHTML=PROGRAM.map((day,i)=>
+    `<button class="tab ${i===current?'active':''}" onclick="goto(${i})">G${i+1}<small>${countDone(i)}/${day.exercises.length}</small></button>`).join("");
+}
+function renderProgress(){
+  const total=PROGRAM[current].exercises.length, done=countDone(current), pct=total?Math.round(done/total*100):0;
+  $("progress").innerHTML=`<div class="ptop"><b>${PROGRAM[current].day}</b><span>${done}/${total} · ${pct}%</span></div>
+    <div class="pbar"><i style="width:${pct}%"></i><em>${pct}%</em></div>`;
+}
+function renderList(){
+  $("list").innerHTML=PROGRAM[current].exercises.map((ex,e)=>{
+    const st=state[key(current,e)], done=exDone(current,e);
+    const dots=st.sets.map((on,i)=>`<button class="setdot ${on?'on':''}" onclick="toggleSet(${e},${i})">${i+1}</button>`).join("");
+    return `<div class="ex ${done?'done':''}">
+      <div class="ex-top">
+        <button class="check" onclick="toggleAll(${e})" aria-label="Completa"><svg viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6"/></svg></button>
+        <div class="ex-head"><p class="ex-name">${ex.n}</p><div class="ex-scheme">${ex.s}</div></div>
+      </div>
+      <div class="sets"><span class="lbl">Serie</span>${dots}</div>
+      <div class="field"><label>Peso</label><input type="text" inputmode="decimal" placeholder="es. 70 kg / 12.5 kg" value="${(st.weight||'').replace(/"/g,'&quot;')}" oninput="setWeight(${e},this.value)"></div>
+      <div class="field"><label>Note</label><textarea rows="1" placeholder="sensazioni, tecnica, dolori, RIR…" oninput="setNote(${e},this.value);autoGrow(this)">${(st.note||'').replace(/</g,'&lt;')}</textarea></div>
+    </div>`;
+  }).join("");
+  document.querySelectorAll("#list textarea").forEach(autoGrow);
+}
+function autoGrow(t){ t.style.height="auto"; t.style.height=Math.min(t.scrollHeight,160)+"px"; }
+function render(){renderTabs();renderProgress();renderList();}
+function goto(i){current=i;render();}
+
+function afterToggle(d,e,was){ if(!was && exDone(d,e)){ const t=totalDone(); if(t>0 && t%3===0) egg(); } }
+function toggleSet(e,i){ const k=key(current,e); const was=exDone(current,e); const st=state[k]; st.sets[i]=!st.sets[i]; render(); save(); afterToggle(current,e,was); }
+function toggleAll(e){ const k=key(current,e); const was=exDone(current,e); const v=!was; state[k].sets=state[k].sets.map(()=>v); render(); save(); afterToggle(current,e,was); }
+function setWeight(e,v){ state[key(current,e)].weight=v; save(); }
+function setNote(e,v){ state[key(current,e)].note=v; save(); }
+
+function egg(){ const el=$("egg"); el.classList.add("show"); try{ if(navigator.vibrate) navigator.vibrate([60,40,60,40,90]); }catch(e){} clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove("show"),1700); }
+
+let timer={rem:0,base:0,running:false,id:null,ctx:null};
+function fmt(s){ const m=Math.floor(s/60), x=s%60; return m+":"+String(x).padStart(2,"0"); }
+function tUI(){ $("tTime").textContent=fmt(timer.rem); $("timerCard").classList.toggle("run",timer.running); }
+function ensureAudio(){ try{ if(!timer.ctx) timer.ctx=new (window.AudioContext||window.webkitAudioContext)(); if(timer.ctx.state==="suspended") timer.ctx.resume(); }catch(e){} }
+function tStart(sec){ ensureAudio(); timer.base=sec; timer.rem=sec; timer.running=true; clearInterval(timer.id); timer.id=setInterval(tTick,1000); $("timerCard").classList.remove("done"); tUI(); }
+function tTick(){ if(!timer.running) return; timer.rem--; if(timer.rem<=0){ timer.rem=0; timer.running=false; clearInterval(timer.id); tDone(); } tUI(); }
+function tToggle(){ if(timer.rem<=0) return; timer.running=!timer.running; clearInterval(timer.id); if(timer.running) timer.id=setInterval(tTick,1000); tUI(); }
+function tAdd(d){ timer.rem=Math.max(0,timer.rem+d); tUI(); }
+function tStop(){ timer.running=false; clearInterval(timer.id); timer.rem=0; $("timerCard").classList.remove("done"); tUI(); }
+function beep(){ try{ ensureAudio(); const c=timer.ctx; if(!c) return; [0,0.18,0.36].forEach(t=>{ const o=c.createOscillator(),g=c.createGain(); o.type="square"; o.frequency.value=880; g.gain.setValueAtTime(.0001,c.currentTime+t); g.gain.exponentialRampToValueAtTime(.25,c.currentTime+t+.01); g.gain.exponentialRampToValueAtTime(.0001,c.currentTime+t+.14); o.connect(g);g.connect(c.destination); o.start(c.currentTime+t); o.stop(c.currentTime+t+.15); }); }catch(e){} }
+function tDone(){ beep(); try{ if(navigator.vibrate) navigator.vibrate([120,60,120,60,200]); }catch(e){} const c=$("timerCard"); c.classList.add("done"); setTimeout(()=>c.classList.remove("done"),1500); toast("Recupero finito"); }
+
+function toast(m){ const t=$("toast"); t.textContent=m; t.classList.add("show"); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove("show"),2200); }
+
+function exportData(){
+  const payload={app:"scheda-palestra",version:2,savedAt:new Date().toISOString(),state};
+  const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"});
+  const url=URL.createObjectURL(blob),a=document.createElement("a"),d=new Date();
+  a.href=url;a.download=`scheda-backup-${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}.json`;
+  document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url); toast("Backup creato");
+}
+function importData(ev){
+  const f=ev.target.files[0]; if(!f) return; const r=new FileReader();
+  r.onload=()=>{ try{ const data=JSON.parse(r.result); if(!data.state) throw 0; state=data.state; initState(); render(); save(); toast("Backup importato"); }catch(e){ toast("File non valido"); } };
+  r.readAsText(f); ev.target.value="";
+}
+function resetAll(){ if(!confirm("Azzerare tutte le serie, i pesi e le note?")) return; state={}; initState(); render(); save(); toast("Scheda azzerata"); }
+
+load(); initState(); render(); tUI();
+</script>
+</body>
+</html>
