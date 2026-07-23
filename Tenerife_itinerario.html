@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tenerife · Quaderno di viaggio 26 lug – 3 ago 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,400&family=Public+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+<style>
+/* Hallmark · macrostructure: Narrative Workflow · genre: editorial · theme: Almanac
+ * tone: editorial-almanac (quaderno di bordo) · anchor hue: petrol (cool ~228deg) · paper: light
+ * nav: N7 index-rail · footer: Ft5 statement · enrichment: none (typography only)
+ * diversification: differs from prior build on paper band + display style + accent hue
+ * pre-emit critique: P4 H5 E4 S5 R4 V5
+ */
+
+:root{
+  /* paper + ink — hex base: funziona in ogni browser */
+  --color-paper:      #FFFFFF;
+  --color-paper-2:    #F4F1EC;
+  --color-paper-3:    #E7E2DA;
+  --color-ink:        #23201B;
+  --color-ink-2:      #5C564E;
+  --color-ink-3:      #8A8279;
+  /* single accent — petrol */
+  --color-accent:     #1E5F7A;
+  --color-accent-2:   #164A60;
+  --color-accent-ink: #FFFFFF;
+  --color-accent-wash:rgba(30,95,122,.10);
+  --color-focus:      #1E5F7A;
+  /* data palette — phases only, never on controls */
+  --c-p0: #7A6A55;
+  --c-p1: #B0763A;
+  --c-p2: #A83A28;
+  --c-p3: #2E7C99;
+  --c-p4: #2F7A56;
+  --c-p5: #6C6288;
+  --c-p6: #2B5E8C;
+  --c-p7: #B15F2C;
+  --c-p8: #5E7B39;
+  --c-p9: #6E675E;
+  --c-meal: #A57A2E;
+  --c-guach:#96566B;
+  /* rules */
+  --rule-hair: 1px;
+  --rule-bold: 2px;
+  --rule-color: rgba(35,32,27,.16);
+  --rule-strong: rgba(35,32,27,.42);
+  /* space — 4pt scale */
+  --space-2xs:4px; --space-xs:8px; --space-sm:12px; --space-md:16px;
+  --space-lg:24px; --space-xl:32px; --space-2xl:48px; --space-3xl:72px;
+  /* type */
+  --font-display:"Fraunces",Georgia,"Times New Roman",serif;
+  --font-body:"Public Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  --font-mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --text-display:clamp(2.5rem,10vw,4.25rem);
+  --text-2xl:clamp(1.5rem,5.2vw,2rem);
+  --text-xl:1.25rem; --text-lg:1.0625rem; --text-md:0.9375rem;
+  --text-sm:0.8125rem; --text-xs:0.6875rem;
+  /* radius — locked scale */
+  --radius-lg:14px; --radius-md:9px; --radius-sm:5px;
+  /* motion */
+  --dur-fast:140ms; --dur-mid:260ms; --dur-slow:520ms;
+  --ease-out:cubic-bezier(.16,.84,.34,1);
+  --ease-in:cubic-bezier(.6,.04,.98,.34);
+  --ease-in-out:cubic-bezier(.62,.03,.32,1);
+}
+
+/* Miglioria progressiva: dove OKLCH è supportato, i colori guadagnano gamut.
+   Dove non lo è, restano gli esadecimali sopra — la pagina non sparisce mai. */
+@supports (color: oklch(50% 0.1 200)){
+  :root{
+    --color-paper-2:    oklch(96.4% 0.006 86);
+    --color-paper-3:    oklch(91.5% 0.010 84);
+    --color-ink:        oklch(24% 0.021 62);
+    --color-ink-2:      oklch(43% 0.019 64);
+    --color-ink-3:      oklch(58% 0.017 66);
+    --color-accent:     oklch(44% 0.092 228);
+    --color-accent-2:   oklch(36% 0.088 230);
+    --color-accent-wash:oklch(44% 0.092 228 / 0.10);
+    --color-focus:      oklch(44% 0.092 228);
+    --c-p0: oklch(52% 0.030 70);
+    --c-p1: oklch(58% 0.095 62);
+    --c-p2: oklch(48% 0.132 32);
+    --c-p3: oklch(52% 0.078 218);
+    --c-p4: oklch(48% 0.078 152);
+    --c-p5: oklch(50% 0.038 288);
+    --c-p6: oklch(46% 0.088 238);
+    --c-p7: oklch(52% 0.108 48);
+    --c-p8: oklch(52% 0.078 128);
+    --c-p9: oklch(50% 0.016 70);
+    --c-meal: oklch(55% 0.098 78);
+    --c-guach:oklch(50% 0.078 356);
+    --rule-color: oklch(24% 0.021 62 / 0.16);
+    --rule-strong: oklch(24% 0.021 62 / 0.42);
+  }
+}
+
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{overflow-x:clip}
+html{scroll-behavior:smooth;color-scheme:light;background:#FFFFFF}
+body{
+  margin:0;background:#FFFFFF;background-color:var(--color-paper);color:#23201B;color:var(--color-ink);
+  font-family:var(--font-body);font-size:var(--text-md);line-height:1.55;
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+  background-image:linear-gradient(rgba(35,32,27,.035) 1px,transparent 1px);
+  background-size:100% 32px;
+}
+a{color:inherit}
+:focus-visible{outline:var(--rule-bold) solid var(--color-focus);outline-offset:3px;border-radius:var(--radius-sm)}
+h1,h2,h3{font-family:var(--font-display);font-weight:600;letter-spacing:-.015em;
+  overflow-wrap:anywhere;min-width:0;margin:0}
+
+.wrap{max-width:760px;margin:0 auto;padding-inline:var(--space-lg)}
+
+/* ============ TESTATA ============ */
+.masthead{padding-block:calc(var(--space-2xl) + env(safe-area-inset-top,0px)) var(--space-lg)}
+.dateline{font-family:var(--font-mono);font-size:var(--text-xs);letter-spacing:.14em;
+  text-transform:uppercase;color:var(--color-accent);display:flex;flex-wrap:wrap;gap:var(--space-xs);
+  align-items:center;margin-bottom:var(--space-md)}
+.dateline .sep{width:22px;height:1px;background:var(--rule-strong);display:inline-block}
+.masthead h1{font-size:var(--text-display);line-height:.94;font-weight:700}
+.masthead h1 .it{font-style:italic;font-weight:400;color:var(--color-accent)}
+.dek{margin:var(--space-md) 0 0;font-size:var(--text-lg);line-height:1.5;color:var(--color-ink-2);max-width:52ch}
+.ledger{margin-top:var(--space-lg);border-top:var(--rule-bold) solid var(--color-ink);
+  border-bottom:var(--rule-hair) solid var(--rule-color);
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr))}
+.ledger div{padding:var(--space-sm) 0;border-right:var(--rule-hair) solid var(--rule-color)}
+.ledger div:last-child{border-right:none}
+.ledger dt{font-family:var(--font-mono);font-size:var(--text-xs);letter-spacing:.1em;
+  text-transform:uppercase;color:var(--color-ink-3);margin:0 0 2px}
+.ledger dd{margin:0;font-family:var(--font-display);font-size:var(--text-xl);font-weight:600;line-height:1}
+
+/* ============ RAIL GIORNI (N7) ============ */
+.rail{position:sticky;top:0;z-index:700;background:var(--color-paper);
+  border-bottom:var(--rule-hair) solid var(--rule-color)}
+.rail-inner{max-width:760px;margin:0 auto;display:flex;gap:0;overflow-x:auto;
+  scrollbar-width:none;padding-inline:var(--space-lg)}
+.rail-inner::-webkit-scrollbar{display:none}
+.rail button{flex:0 0 auto;appearance:none;background:none;border:none;cursor:pointer;
+  font-family:var(--font-mono);font-size:var(--text-xs);letter-spacing:.08em;text-transform:uppercase;
+  color:var(--color-ink-3);min-height:46px;padding:0 var(--space-sm);white-space:nowrap;
+  border-bottom:var(--rule-bold) solid transparent;transition:color var(--dur-fast) var(--ease-out)}
+.rail button:hover{color:var(--color-ink)}
+.rail button[aria-pressed="true"]{color:var(--color-accent);border-bottom-color:var(--color-accent)}
+
+/* ============ MAPPA ============ */
+.atlas{position:relative;margin-block:var(--space-lg);border-block:var(--rule-hair) solid var(--rule-color)}
+#map{height:42dvh;min-height:260px;background:var(--color-paper-2)}
+.atlas-skel{position:absolute;inset:0;z-index:2;pointer-events:none;display:flex;
+  align-items:center;justify-content:center;background:var(--color-paper-2);
+  font-family:var(--font-mono);font-size:var(--text-xs);letter-spacing:.12em;text-transform:uppercase;
+  color:var(--color-ink-3);transition:opacity var(--dur-slow) var(--ease-out)}
+.atlas-skel.gone{opacity:0}
+.atlas-reset{position:absolute;right:var(--space-sm);bottom:var(--space-sm);z-index:500;
+  background:var(--color-paper);color:var(--color-ink);border:var(--rule-hair) solid var(--rule-strong);
+  border-radius:var(--radius-md);min-height:38px;padding:0 var(--space-sm);cursor:pointer;
+  font-family:var(--font-mono);font-size:var(--text-xs);letter-spacing:.06em;text-transform:uppercase;
+  transition:transform var(--dur-fast) var(--ease-out)}
+.atlas-reset:active{transform:translateY(1px)}
+.leaflet-popup-content-wrapper{background:var(--color-paper);color:var(--color-ink);
+  border:var(--rule-hair) solid var(--rule-strong);border-radius:var(--radius-md);box-shadow:none}
+.leaflet-popup-tip{background:var(--color-paper);border:var(--rule-hair) solid var(--rule-strong)}
+.leaflet-popup-content{margin:var(--space-sm) var(--space-md);font-family:var(--font-body);font-size:var(--text-sm);line-height:1.5}
+.pop-k{font-family:var(--font-mono);font-size:var(--text-xs);letter-spacing:.1em;text-transform:uppercase;color:var(--pk)}
+.pop-t{font-family:var(--font-display);font-weight:600;font-size:var(--text-lg);line-height:1.15;margin:var(--space-2xs) 0 var(--space-xs)}
+.pop-n{color:var(--color-ink-2);margin:0 0 var(--space-sm)}
+.pop-a{display:inline-flex;align-items:center;min-height:36px;padding:0 var(--space-sm);
+  background:var(--color-accent);color:var(--color-accent-ink);border-radius:var(--radius-sm);
+  font-weight:600;font-size:var(--text-sm);text-decoration:none}
+.pin{width:22px;height:22px;border-radius:50%;border:var(--rule-bold) solid var(--color-paper);
+  display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);
+  font-size:10px;font-weight:700;color:#fff;box-shadow:0 1px 4px rgba(35,32,27,.4)}
+.pin.sq{border-radius:3px}
+
+/* ============ FASI ============ */
+.phase{padding-block:var(--space-2xl);border-top:var(--rule-hair) solid var(--rule-color)}
+.phase:first-of-type{border-top:none}
+.phase-no{font-family:var(--font-mono);font-size:var(--text-sm);font-weight:700;letter-spacing:.12em;
+  color:var(--ph);display:block;margin-bottom:var(--space-xs)}
+.phase-no::after{content:"";display:block;width:34px;height:var(--rule-bold);background:var(--ph);margin-top:var(--space-xs)}
+.phase h2{font-size:var(--text-2xl);line-height:1.06}
+.phase-when{font-family:var(--font-mono);font-size:var(--text-xs);letter-spacing:.1em;text-transform:uppercase;
+  color:var(--color-ink-3);margin-top:var(--space-xs)}
+.phase-lede{margin:var(--space-md) 0 0;color:var(--color-ink-2);max-width:56ch}
+
+/* tappe */
+.legs{margin-top:var(--space-xl);list-style:none;padding:0}
+.leg{padding-block:var(--space-lg);border-top:var(--rule-hair) solid var(--rule-color)}
+.leg-time{font-family:var(--font-mono);font-size:var(--text-xs);font-weight:700;letter-spacing:.08em;
+  color:var(--ph);text-transform:uppercase}
+.leg.meal .leg-time{color:var(--c-meal)}
+.leg.guach .leg-time{color:var(--c-guach)}
+.leg h3{font-size:var(--text-xl);line-height:1.2;margin-top:var(--space-2xs);font-weight:600}
+.mark{display:inline-block;font-family:var(--font-mono);font-size:var(--text-xs);letter-spacing:.06em;
+  text-transform:uppercase;color:var(--color-ink-3);border:var(--rule-hair) solid var(--rule-color);
+  border-radius:var(--radius-sm);padding:1px 6px;margin-left:var(--space-xs);vertical-align:middle;white-space:nowrap}
+.leg-note{margin:var(--space-xs) 0 var(--space-md);color:var(--color-ink-2);max-width:60ch}
+.leg-note b{color:var(--color-ink)}
+.acts{display:flex;gap:var(--space-xs);flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:6px;min-height:42px;padding:0 var(--space-md);
+  border-radius:var(--radius-md);font-family:var(--font-body);font-size:var(--text-sm);font-weight:600;
+  text-decoration:none;cursor:pointer;border:var(--rule-hair) solid var(--rule-strong);
+  background:transparent;color:var(--color-ink);white-space:nowrap;
+  transition:transform var(--dur-fast) var(--ease-out),background var(--dur-fast) var(--ease-out)}
+.btn:hover{background:var(--color-paper-2)}
+.btn:active{transform:translateY(1px)}
+.btn.go{background:var(--color-accent);border-color:var(--color-accent);color:var(--color-accent-ink)}
+.btn.go:hover{background:var(--color-accent-2)}
+.btn.mute{border-style:dashed;color:var(--color-ink-3);cursor:default}
+.btn.mute:hover{background:transparent}
+.leg.on{background:var(--color-accent-wash);border-radius:var(--radius-lg);
+  padding-inline:var(--space-md);margin-inline:calc(var(--space-md) * -1)}
+
+/* ============ FASE 0 ============ */
+.temps{list-style:none;padding:0;margin:var(--space-lg) 0 0;
+  display:grid;gap:var(--space-sm);grid-template-columns:repeat(auto-fit,minmax(min(100%,190px),1fr))}
+.temps li{border:var(--rule-hair) solid var(--rule-color);border-radius:var(--radius-md);padding:var(--space-sm) var(--space-md)}
+.temps b{display:block;font-family:var(--font-display);font-size:var(--text-xl);font-weight:600;line-height:1.1}
+.temps span{font-family:var(--font-mono);font-size:var(--text-xs);letter-spacing:.08em;
+  text-transform:uppercase;color:var(--color-ink-3);display:block;margin-bottom:2px}
+.temps em{display:block;font-style:normal;font-size:var(--text-sm);color:var(--color-ink-2);margin-top:var(--space-2xs)}
+
+.kitgrid{display:grid;gap:var(--space-xl);grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));margin-top:var(--space-lg)}
+.kit h3{font-family:var(--font-mono);font-size:var(--text-xs);letter-spacing:.14em;text-transform:uppercase;
+  font-weight:700;color:var(--color-accent);padding-bottom:var(--space-xs);
+  border-bottom:var(--rule-bold) solid var(--color-ink);margin-bottom:var(--space-xs)}
+.kit ul{list-style:none;padding:0;margin:0}
+.kit li{border-bottom:var(--rule-hair) solid var(--rule-color)}
+.kit label{display:flex;gap:var(--space-sm);align-items:flex-start;min-height:44px;
+  padding-block:var(--space-xs);cursor:pointer}
+.kit input{appearance:none;flex:0 0 auto;width:17px;height:17px;margin-top:5px;
+  border:var(--rule-bold) solid var(--rule-strong);border-radius:var(--radius-sm);background:transparent;
+  cursor:pointer;transition:background var(--dur-fast) var(--ease-out)}
+.kit input:checked{background:var(--color-accent);border-color:var(--color-accent)}
+.kit input:checked+span{color:var(--color-ink-3);text-decoration:line-through}
+.kit label span{font-size:var(--text-sm);line-height:1.45}
+.kit label span b{font-weight:700}
+.kit-note{font-size:var(--text-sm);color:var(--color-ink-3);margin-top:var(--space-sm)}
+
+.bookings{list-style:none;padding:0;margin:var(--space-lg) 0 0}
+.bookings li{display:flex;flex-wrap:wrap;gap:var(--space-xs) var(--space-md);align-items:baseline;
+  padding-block:var(--space-sm);border-bottom:var(--rule-hair) solid var(--rule-color)}
+.bookings .what{font-weight:600;flex:1 1 190px;min-width:0}
+.bookings .when{font-family:var(--font-mono);font-size:var(--text-xs);letter-spacing:.06em;
+  text-transform:uppercase;color:var(--color-ink-3)}
+.bookings a{color:var(--color-accent);font-weight:600;text-decoration:none;
+  border-bottom:var(--rule-hair) solid var(--color-accent-wash);
+  transition:border-color var(--dur-fast) var(--ease-out)}
+.bookings a:hover{border-bottom-color:var(--color-accent)}
+
+.warnbox{margin-top:var(--space-lg);border-left:var(--rule-bold) solid var(--color-accent);
+  background:var(--color-paper-2);border-radius:0 var(--radius-md) var(--radius-md) 0;
+  padding:var(--space-md);font-size:var(--text-sm);color:var(--color-ink-2)}
+.warnbox b{color:var(--color-ink)}
+
+/* ============ CHIUSA (Ft5) ============ */
+.colophon{margin-top:var(--space-2xl);border-top:var(--rule-bold) solid var(--color-ink);
+  padding-block:var(--space-xl) calc(var(--space-2xl) + env(safe-area-inset-bottom,0px))}
+.colophon p{font-family:var(--font-display);font-size:var(--text-2xl);line-height:1.15;
+  font-weight:400;font-style:italic;margin:0;max-width:22ch}
+.colophon small{display:block;margin-top:var(--space-md);font-size:var(--text-sm);color:var(--color-ink-3);max-width:56ch}
+
+/* motion */
+@media (prefers-reduced-motion:no-preference){
+  .phase{opacity:0;transform:translateY(14px)}
+  .phase.seen{opacity:1;transform:none;
+    transition:opacity var(--dur-slow) var(--ease-out),transform var(--dur-slow) var(--ease-out)}
+}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *{animation:none!important;transition-duration:120ms!important}
+}
+</style>
+</head>
+<body>
+
+<header class="masthead wrap">
+  <p class="dateline"><span>Tenerife</span><span class="sep"></span><span>26 lug – 3 ago 2026</span></p>
+  <h1>Quaderno<br>di <span class="it">viaggio</span></h1>
+  <p class="dek">Nove fasi, due basi, un'isola che in una mattina passa dal mare a tremilacinquecento metri. Ogni tappa apre la sua scheda su Google Maps.</p>
+  <dl class="ledger">
+    <div><dt>Fasi</dt><dd>9</dd></div>
+    <div><dt>Basi</dt><dd>2</dd></div>
+    <div><dt>Tappe</dt><dd id="n-stops">—</dd></div>
+    <div><dt>Teide</dt><dd>3715<span style="font-size:var(--text-sm)">m</span></dd></div>
+  </dl>
+</header>
+
+<nav class="rail" id="rail" aria-label="Filtra per fase"><div class="rail-inner" id="rail-inner"></div></nav>
+
+<div class="atlas">
+  <div id="map"></div>
+  <div class="atlas-skel" id="skel">Carico la mappa</div>
+  <button class="atlas-reset" id="reset" type="button">Tutta l'isola</button>
+</div>
+
+<main class="wrap" id="phases"></main>
+
+<footer class="colophon wrap">
+  <p>Il mare decide, non il programma.</p>
+  <small>Orari indicativi: in alta stagione la TF-1 e le strade di montagna rallentano. Verifica sempre lo stato del mare prima di entrare in un charco, i giorni di chiusura dei ristoranti (molti tipici chiudono mar/mer) e l'agibilità di El Caletón dopo la mareggiata di fine 2025.</small>
+</footer>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+  integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script>
+/* ---------- dati: invariati rispetto alla versione precedente ---------- */
+const DAYS=[
+ {n:1,no:"1.0",dow:"Dom",date:"26 lug",v:"--c-p1",title:"Sbarco e risalita",
+  lede:"Si atterra al sud e si sale al nord. In mezzo, una sosta che alleggerisce la fase 4.",
+  stops:[
+   {t:"09:55",name:"Aeroporto Tenerife Sur (TFS)",kind:"base",pid:"ChIJtQc1pJmfagwRATBZlraFkIo",
+    note:"Atterraggio. <b>NON</b> Tenerife Norte (TFN), che è a oltre un'ora. Ritiro auto ~10:30–11:30: in alta stagione la coda al banco può prendere un'ora.",lat:28.0467575,lng:-16.5725303},
+   {t:"12:30",name:"La Laguna",pid:"ChIJ2Qyt-sDNQQwR9jXBQw28kCk",
+    note:"Sosta a metà strada invece di arrivare in hotel prima del check-in. Centro storico UNESCO. Parcheggio a pagamento fuori dal nucleo.",lat:28.4910445,lng:-16.3192631},
+   {t:"13:00",name:"Rincón Lagunero",meal:"pranzo",pid:"ChIJOwvUYcDNQQwRkmbKa4w5OLg",
+    note:"Cucina canaria casalinga in centro: capra, gambas, croquetas. Aperto tutti i giorni, prezzi bassi.",lat:28.4899781,lng:-16.3199094},
+   {t:"alt.",name:"Guachinche Cueva Casiano",guach:true,pid:"ChIJ5e670AfNQQwRNUTnQ39vFi8",
+    note:"Alternativa più economica e autentica: guachinche in centro a La Laguna. Aperto la domenica.",lat:28.4847331,lng:-16.3149121},
+   {t:"16:00",name:"Puerto de la Cruz",kind:"base",pid:"ChIJsf16ifp_agwRdmMUyVe6IP4",
+    note:"Check-in. Base nord per quattro notti, ~30 min da La Laguna.",lat:28.4127781,lng:-16.5442826},
+   {t:"17:30",name:"Playa del Bollullo",kind:"opz",pid:"ChIJpwVoiELVQQwREcOLERgh--I",
+    note:"~15 min. Spiaggia nera selvaggia tra le piantagioni di banane. <b>Onde forti: più da ammirare che da bagno.</b>",lat:28.4174626,lng:-16.5201407},
+   {t:"20:30",name:"Casa Paché",meal:"cena",pid:"ChIJcQ_nigl_agwRZVooRrp9JUo",
+    note:"Cena tipica in un vicolo fiorito: formaggio alla griglia con mojo, coniglio, banana arrosto. Tutto senza glutine. Aperto la domenica. Prenota.",lat:28.4163877,lng:-16.5524787}]},
+
+ {n:2,no:"2.0",dow:"Lun",date:"27 lug",v:"--c-p2",title:"Il vulcano",
+  lede:"Mattina a terra tra i paesaggi lunari, funivia alle 13:50. Il pranzo si porta da casa: dentro il parco non c'è quasi nulla.",
+  stops:[
+   {t:"10:15",name:"Roques de García",pid:"ChIJO47So5-EagwRhF0F_kmFaeU",
+    note:"Anello ~1h30 (o solo il tratto fino al Roque Cinchado, 30–40 min). <b>D'estate il caldo qui si sente</b>: cappello, crema, acqua.",lat:28.224722,lng:-16.631667},
+   {t:"12:45",name:"Pranzo al sacco · Mirador de La Ruleta",meal:"pranzo",nolink:true,
+    note:"Panini comprati a Puerto de la Cruz la mattina. Alternativa a pagamento: il Parador de Las Cañadas, nella media e caro.",lat:28.2213,lng:-16.63},
+   {t:"13:30",name:"Teleférico — stazione base",kind:"base",pid:"ChIJlWuv_oaDagwRMwYVkXS5kIo",
+    note:"2.356 m, parcheggio gratuito. <b>Presentarsi 20 minuti prima dello slot.</b> Oltre non si sale in auto: non esiste strada.",lat:28.2544624,lng:-16.6258129},
+   {t:"13:50",name:"Funivia → La Rambleta",pid:"ChIJlWuv_oaDagwRMwYVkXS5kIo",
+    note:"3.555 m in otto minuti. Sentieri 11 e 12 <b>liberi, nessun permesso</b>. La discesa non ha orario: si fa la coda. Ultima ~18:30. <b>In cima si sfiora lo zero col vento</b>: pile e giacca a vento.",lat:28.27,lng:-16.6389},
+   {t:"16:30",name:"La Orotava",kind:"opz",
+    note:"Sulla via del ritorno: centro coloniale, balconi canari in legno. Deviazione minima.",lat:28.3903,lng:-16.5239},
+   {t:"20:30",name:"Mesón Los Gemelos",meal:"cena",pid:"ChIJhxmJppR_agwRhziIEwdJaK0",
+    note:"Istituzione della cucina canaria casalinga. Si scrive il proprio nome sulla lista d'attesa all'ingresso. Aperto lunedì; chiuso mar/mer.",lat:28.415482,lng:-16.5528138},
+   {t:"alt.",name:"Guachinche Los Gómez",guach:true,pid:"ChIJHW2wqDkrQAwReDdMRL5gwBo",
+    note:"Alternativa sulla discesa: fienile tra le coltivazioni, solomillo e vino di casa. Aperto lunedì. Contanti.",lat:28.3960493,lng:-16.5073151}]},
+
+ {n:3,no:"3.0",dow:"Mar",date:"28 lug",v:"--c-p3",title:"Le piscine di lava",
+  lede:"La giornata più vostra: tre charcos e due borghi, tutti entro quaranta minuti dalla base. È anche la riserva se il 27 c'è vento sul Teide.",
+  stops:[
+   {t:"10:00",name:"Charco de La Laja",pid:"ChIJn_rzpex9agwR3McLHS2pnwQ",
+    note:"~15 min. La piscina naturale più fotogenica dell'isola. <b>Mattina: mare più calmo, acqua più limpida.</b> Scarpe da scoglio. Il bagno viene limitato con onde.",lat:28.3962952,lng:-16.6518597},
+   {t:"12:00",name:"Charco del Viento",pid:"ChIJY5ADAix9agwRWoKhpTi4ag0",
+    note:"Più selvaggia, ottima per snorkeling, con spiaggetta di sabbia nera.",lat:28.400744,lng:-16.6739668},
+   {t:"13:30",name:"Drago Milenario",pid:"ChIJueZPPv6HagwRdBPnNCk4rpc",
+    note:"Albero drago di 800–1.000 anni a Icod de los Vinos, simbolo dell'isola.",lat:28.3665471,lng:-16.722216},
+   {t:"14:30",name:"Tasca El Muelle Viejo",meal:"pranzo",pid:"ChIJHbFrtJdjagwRdEvcwVzCPqM",
+    note:"Pesce e tapas a Garachico. Aperto martedì. La Cañada, con vista mare, è chiusa lun/mar.",lat:28.3719597,lng:-16.7669707},
+   {t:"alt.",name:"Candelaria La Cocinera",guach:true,pid:"ChIJTQdPHYRiagwRh14uz_XVYlo",
+    note:"I guachinche veri della zona chiudono il martedì. Questa è típica, ricette di famiglia, <b>solo contanti</b>.",lat:28.3717511,lng:-16.764485},
+   {t:"16:00",name:"El Caletón",pid:"ChIJua-3ioZiagwRxeyzBQvdaqg",
+    note:"Piscine di lava del 1706 nel centro di Garachico. <b>Verificare lo stato</b>: segnalati danni da mareggiata. Chiude con mare mosso.",lat:28.3735125,lng:-16.7660683},
+   {t:"20:30",name:"La Pescadería",meal:"cena",pid:"ChIJvxTOipR_agwRnCuI4BlAqao",
+    note:"Pesce fresco nel casco antiguo: sardine croccanti, calamari, peperoni di Padrón. Piccola: prenota o vai presto.",lat:28.41714,lng:-16.55396}]},
+
+ {n:4,no:"4.0",dow:"Mer",date:"29 lug",v:"--c-p4",title:"Anaga, il lato selvaggio",
+  lede:"Foresta preistorica al mattino, faraglioni al pomeriggio. Dal sud sarebbe stata proibitiva: è il motivo per cui dormite al nord.",
+  stops:[
+   {t:"09:45",name:"Parco Rurale di Anaga",pid:"ChIJMXqAz7LOQQwRItzwbLnAy2w",
+    note:"Laurisilva, foresta di allori sopravvissuta all'era terziaria. Sendero de los Sentidos da Cruz del Carmen: tre percorsi facili di 20–40 min. <b>Spesso nebbia: portate una felpa.</b> Strada tortuosissima.",lat:28.5308651,lng:-16.279915},
+   {t:"12:30",name:"Playa de Benijo",pid:"ChIJ-5242lLIQQwR9rT4G20kZzY",
+    note:"La spiaggia nera più spettacolare dell'isola: faraglioni nell'oceano. <b>Onde e correnti forti: più da ammirare che da nuotare.</b> Parcheggio scarsissimo.",lat:28.5721077,lng:-16.1925214},
+   {t:"13:30",name:"El Mirador de Benijo",meal:"pranzo",pid:"ChIJ9QvRlkzIQQwRp8aJfMRSkOo",
+    note:"Pesce fresco con vista sui faraglioni. Pochi tavoli in terrazza: arrivate presto. Solo pranzo, fino alle 17.",lat:28.5746918,lng:-16.1884537},
+   {t:"17:00",name:"Playa de Las Teresitas",pid:"ChIJf8HZ0TjKQQwRa07RG675lFY",
+    note:"Sulla via del ritorno. Sabbia dorata portata dal Sahara, acqua calma protetta da una diga: <b>qui il bagno tranquillo si fa davvero.</b>",lat:28.5097119,lng:-16.1847441},
+   {t:"20:30",name:"Guachinche La Casona",meal:"cena",pid:"ChIJ8xvaoLAqQAwRM1bjiJzlGGc",
+    note:"L'esperienza guachinche: trattoria contadina con vino di casa e vista su Puerto de la Cruz. Ropa vieja, queso asado. Contanti.",lat:28.3859556,lng:-16.5200384},
+   {t:"alt.",name:"Guachinche El Guayero",guach:true,pid:"ChIJqVreo8vPQQwR4MXHyaMhWEY",
+    note:"Ancora più autentico, sul rientro da Anaga (Tegueste): capra, chuletón, vino di casa. Aperto mercoledì.",lat:28.524207,lng:-16.342263}]},
+
+ {n:5,no:"5.0",dow:"Gio",date:"30 lug",v:"--c-p5",title:"Traversata al sud",
+  lede:"Giornata volutamente leggera: il Teide è stato spostato alla fase 2 apposta, così il check-in avviene nel primo pomeriggio e non la sera.",
+  stops:[
+   {t:"13:30",name:"Base sud — check-in",kind:"base",pid:"ChIJyzjzHlqXagwRn04E1XuMjLo",
+    note:"Costa Adeje o Callao Salvaje secondo l'hotel scelto. Checkout al nord la mattina, ~1h–1h10 di guida.",lat:28.107,lng:-16.74},
+   {t:"15:00",name:"Caleta Coast",meal:"pranzo",pid:"ChIJ1SHHkkqXagwRE2Wk6je1q-M",
+    note:"Pranzo tardo vicino alla base, a Playa del Duque: pesce e cucina spagnola. Chiuso lunedì.",lat:28.0928253,lng:-16.7465248},
+   {t:"16:30",name:"Playa del Duque + lungomare",kind:"opz",pid:"ChIJ0cRmSUqXagwR6qRnp8xGs4I",
+    note:"Passeggiata sul Paseo de Bahía del Duque verso La Caleta. <b>Tenete leggera questa giornata</b>: dopo cinque giorni di guida serve.",lat:28.091441,lng:-16.7439204},
+   {t:"20:30",name:"Restaurante Salitre",meal:"cena",pid:"ChIJ9zwahc6QagwRkzzGB_15V3U",
+    note:"Prima cena al sud, sul mare a La Caleta. Menù corto ma di qualità, ottimo al tramonto. Prenota.",lat:28.100353,lng:-16.755306},
+   {t:"alt.",name:"Bodegón Antonio",guach:true,pid:"ChIJkRqDxVqOagwRFyPJXxjlF-k",
+    note:"Il guachinche più vicino al sud (~25 min, Guía de Isora): trattoria familiare, carne di capra, sotto i 50 € in due. Aperto giovedì.",lat:28.215565,lng:-16.7845904}]},
+
+ {n:6,no:"6.0",dow:"Ven",date:"31 lug",v:"--c-p6",title:"Le falesie e i cetacei",
+  lede:"Globicefali e delfini vivono stabilmente in queste acque: l'avvistamento è quasi garantito, ma restano animali selvatici.",
+  stops:[
+   {t:"09:30",name:"Porto di Los Gigantes",pid:"ChIJvQiURWuMagwR2HS0zTR9_xI",
+    note:"Uscita in barca al mattino, quando il mare è più calmo: balene pilota, delfini e le falesie viste dal basso. <b>Operatore con marchio Barco Azul.</b>",lat:28.246621,lng:-16.842061},
+   {t:"13:00",name:"A bordo o al sacco",meal:"pranzo",nolink:true,
+    note:"Molte uscite includono snack e bevande a bordo; altrimenti si porta il pranzo. In alternativa un boccone a Playa de la Arena dopo lo sbarco.",lat:28.246621,lng:-16.842061},
+   {t:"13:30",name:"Playa de la Arena",pid:"ChIJ9cQxo0iMagwRD_R7ex7ru8M",
+    note:"Sabbia nera Bandiera Blu, con l'olivina che brilla al sole.",lat:28.2297166,lng:-16.8408842},
+   {t:"16:00",name:"Playa de los Guíos",pid:"ChIJExa2uhSMagwREli8rGk_nOM",
+    note:"Caletta di sassi ai piedi delle falesie. <b>In ombra la mattina, sole solo dal pomeriggio</b>: l'orario è quello giusto.",lat:28.2475416,lng:-16.8403331},
+   {t:"20:30",name:"Mirador de Archipenque",pid:"ChIJ0Q6XyhSMagwRAw7nAMKpYgE",
+    note:"Il tramonto della vacanza: costa esposta a ovest, La Gomera all'orizzonte.",lat:28.2404149,lng:-16.8370118},
+   {t:"21:30",name:"Tapitas la Caleta",meal:"cena",pid:"ChIJ9QwZS86QagwRLMDazWjwzwU",
+    note:"Cena informale ed economica: polpo, gambas al ajillo, paella, sangria. Perfetta dopo una giornata lunga.",lat:28.1021656,lng:-16.7571613},
+   {t:"alt.",name:"El Guachinyero (Chío)",guach:true,pid:"ChIJTV6lFxyPagwRgrw0bKAqJaw",
+    note:"Guachinche vicino a Los Gigantes: carne alla griglia e vino locale, prezzi bassi. Aperto venerdì.",lat:28.2276527,lng:-16.7900666}]},
+
+ {n:7,no:"7.0",dow:"Sab",date:"1 ago",v:"--c-p7",title:"Il paese tra le gole",
+  lede:"Masca al mattino, quando nella gola non batte ancora il sole. Il villaggio e i miradores non richiedono nessuna prenotazione.",
+  stops:[
+   {t:"10:30",name:"Masca",pid:"ChIJO4J4msmLagwRELPPdPZAAwo",
+    note:"Il borgo più spettacolare dell'isola. <b>Strada tortuosissima</b>: guidate piano, chi soffre l'auto stia davanti. Il trekking del barranco fino al mare è un extra: bus 355 e barca obbligatori.",lat:28.3053534,lng:-16.8399144},
+   {t:"13:00",name:"La Fuente",meal:"pranzo",pid:"ChIJMyHNGMqLagwRgXDMEWVKrwU",
+    note:"Cucina canaria con vista sulla gola: capra, vitello, buon rapporto qualità/prezzo. Aperto sabato. El Guanche, il migliore, chiude ven/sab.",lat:28.3050549,lng:-16.8399871},
+   {t:"14:30",name:"Charcos de La Jaquita",pid:"ChIJVVVV5dyNagwRNa2WwO0CvSQ",
+    note:"Piscine di lava attrezzate ad Alcalá, con piattaforma e spiaggetta accanto. <b>Il charco più sicuro e comodo della vacanza.</b>",lat:28.2049497,lng:-16.8344534},
+   {t:"alt.",name:"Guachinche La Pacheca",guach:true,pid:"ChIJxf32HwCPagwRD7t1FRp85SU",
+    note:"Garage-guachinche di stagione a Guía de Isora: mezze porzioni, ~20 € in due, vino di casa. Aperto sabato.",lat:28.2124123,lng:-16.7790498},
+   {t:"20:30",name:"Duquesa Bistrò",meal:"cena",pid:"ChIJi8phxDeXagwROL_-Uk62T5g",
+    note:"Il salto di qualità, vicino alla base: chef italiani, pasta fatta in casa, pesce fresco. Pochi tavoli: prenota.",lat:28.0933762,lng:-16.7461692}]},
+
+ {n:8,no:"8.0",dow:"Dom",date:"2 ago",v:"--c-p8",title:"Fase aperta",
+  lede:"Tre strade, nessuna sbagliata. Dopo una settimana di tornanti, anche il non fare niente è una scelta legittima.",
+  stops:[
+   {t:"A",name:"Punta de Teno",kind:"opz",pid:"ChIJc9ksVlb1agwRuGR7up3WP7M",
+    note:"~1h fino a Buenavista, poi <b>navetta obbligatoria</b>: l'auto è vietata di giorno. Faro, colate di lava, falesie. Il più selvaggio.",lat:28.3419864,lng:-16.9229928},
+   {t:"B",name:"La Gomera in traghetto",kind:"opz",pid:"ChIJeY5GfiyYagwRkkcCvPRAAyY",
+    note:"Dal porto di Los Cristianos, ~15 min dalla base, traversata ~50 min. Foresta del Garajonay, UNESCO. Con noleggio Cicar: 25% di sconto Armas in biglietteria.",lat:28.048906,lng:-16.7115979},
+   {t:"C",name:"Siam Park o niente",kind:"opz",pid:"ChIJbQKLqmGXagwR8mjuzA0wqVA",
+    note:"Spiagge di Costa Adeje, un ultimo charco, o il parco acquatico a cinque minuti.",lat:28.072088,lng:-16.7255852},
+   {t:"14:00",name:"La Tasquita del Puerto",meal:"pranzo",pid:"ChIJhZluTHufagwRlcsWYaNYddw",
+    note:"Pesce freschissimo nel borgo di Los Abrigos. Se scegliete La Gomera, pranzate sull'isola.",lat:28.0289689,lng:-16.5930417},
+   {t:"20:30",name:"La Torre del Mirador",meal:"cena",pid:"ChIJAWAEfEuXagwRNOlGDeyrJCQ",
+    note:"Ultima cena sul mare: branzino in crosta di sale, musica dal vivo. Aperto domenica. Prenota. Chiuso martedì.",lat:28.092074,lng:-16.744416}]},
+
+ {n:9,no:"9.0",dow:"Lun",date:"3 ago",v:"--c-p9",title:"Ritorno",
+  lede:"L'aeroporto è a venti minuti: c'è tempo per un ultimo bagno.",
+  stops:[
+   {t:"—",name:"Riconsegna auto · TFS",kind:"base",pid:"ChIJtQc1pJmfagwRATBZlraFkIo",
+    note:"Rifotografate l'auto alla riconsegna, come al ritiro.",lat:28.0467575,lng:-16.5725303}]}
+];
+
+const TEMPS=[
+ {k:"Costa sud",v:"26–29°",d:"Umidità ~50%, vento costante. Caldo asciutto, non l'afa di Roma."},
+ {k:"Costa nord",v:"25–28°",d:"Più nuvoloso e umido. Anaga spesso nella nebbia."},
+ {k:"Teide, 3.555 m",v:"5–12°",d:"Col vento la percepita sfiora lo zero. UV feroci."},
+ {k:"Mare",v:"22–23°",d:"Il massimo dell'anno. Fresco all'ingresso, poi piacevole."}
+];
+
+const KIT={
+ ess:["<b>Pile + giacca a vento</b> per il Teide — non negoziabile","Crema solare 50+, occhiali, cappello",
+  "<b>Scarpe da scoglio</b> per i charcos — la cosa che si dimentica e si rimpiange","Scarpe da trekking o ginnastica robuste",
+  "Costume, telo, ciabatte","Borraccia e acqua abbondante","Documenti: carta d'identità, patente, tessera sanitaria europea, carta di credito",
+  "Powerbank e caricatore","<b>Torcia o frontale</b> — strade di montagna senza illuminazione, rientri al buio"],
+ plus:["<b>Binocolo</b> compatto 8×25 — balene e delfini spesso a distanza, e i miradores del Teide",
+  "Zaino da giornata 20–25 L","K-way leggero per il vento in quota e l'umidità di Anaga","Snack per le giornate lunghe",
+  "Custodia impermeabile per il telefono","Telo in microfibra e costume di ricambio",
+  "Cerotti anti-vesciche, antinausea per tornanti e barca","Contanti per parcheggi e guachinche","Sacchetto per i rifiuti"]
+};
+
+const BOOK=[
+ {w:"Auto a noleggio, ritiro TFS",u:[["cicar.com","https://www.cicar.com"],["autoreisen.com","https://www.autoreisen.com"]],t:"Ora, con cancellazione gratuita"},
+ {w:"Funivia del Teide, slot 13:50",u:[["volcanoteide.com","https://www.volcanoteide.com"]],t:"Ora · lascia il numero per l'SMS anti-vento"},
+ {w:"Permesso vetta PNT 10 (facoltativo)",u:[["tenerifeon.es","https://www.tenerifeon.es"]],t:"Slot il lunedì alle 7:00, finestra ~28 giorni"},
+ {w:"Barca cetacei, Los Gigantes",u:[],t:"1–2 settimane prima · uscita mattutina · marchio Barco Azul"},
+ {w:"Trekking del barranco (facoltativo)",u:[["caminobarrancodemasca.com","https://www.caminobarrancodemasca.com"]],t:"In anticipo · bus 355 obbligatorio, barca a parte"},
+ {w:"Meteo, vento e calima",u:[["aemet.es","https://www.aemet.es"]],t:"2–3 giorni prima di ogni escursione"}
+];
+
+/* ---------- mappa ---------- */
+const map=L.map('map',{zoomControl:true}).setView([28.30,-16.60],9.3);
+const tiles=L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+ {maxZoom:19,subdomains:'abcd',attribution:'&copy; OpenStreetMap &copy; CARTO'}).addTo(map);
+tiles.on('load',()=>document.getElementById('skel').classList.add('gone'));
+setTimeout(()=>document.getElementById('skel').classList.add('gone'),3500);
+
+const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const gmaps=s=>{const b='https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(s.name+', Tenerife');
+ return s.pid?b+'&query_place_id='+s.pid:b;};
+const icon=(c,l,sq)=>L.divIcon({className:'',html:'<div class="pin'+(sq?' sq':'')+'" style="background:'+c+'"><span>'+l+'</span></div>',
+ iconSize:[22,22],iconAnchor:[11,22],popupAnchor:[0,-20]});
+
+const marks={};const all=[];let count=0;
+DAYS.forEach(d=>{const col=css(d.v);
+ d.stops.forEach((s,i)=>{count++;const id='p'+d.n+'-'+i;
+  const c=s.guach?css('--c-guach'):(s.meal?css('--c-meal'):col);
+  const lab=s.guach?'G':(s.meal?'●':d.n);
+  const key=s.guach?'Guachinche':(s.meal?(s.meal==='cena'?'Cena':'Pranzo'):'Fase '+d.no);
+  const m=L.marker([s.lat,s.lng],{icon:icon(c,lab,!!s.guach)});
+  let h='<div class="pop-k" style="--pk:'+c+'">'+key+' · '+s.t+'</div><div class="pop-t">'+s.name+'</div><div class="pop-n">'+s.note+'</div>';
+  if(!s.nolink)h+='<a class="pop-a" target="_blank" rel="noopener" href="'+gmaps(s)+'">Apri in Maps →</a>';
+  m.bindPopup(h,{maxWidth:270});m.addTo(map);marks[id]={m:m,d:d.n};all.push([s.lat,s.lng]);});});
+document.getElementById('n-stops').textContent=count;
+
+/* ---------- fasi ---------- */
+const host=document.getElementById('phases');
+
+/* fase 0 */
+const p0=document.createElement('section');
+p0.className='phase';p0.dataset.day='0';p0.style.setProperty('--ph',css('--c-p0'));
+let t0='';TEMPS.forEach(x=>{t0+='<li><span>'+x.k+'</span><b>'+x.v+'</b><em>'+x.d+'</em></li>';});
+let k1='';KIT.ess.forEach((x,i)=>{k1+='<li><label><input type="checkbox"><span>'+x+'</span></label></li>';});
+let k2='';KIT.plus.forEach((x,i)=>{k2+='<li><label><input type="checkbox"><span>'+x+'</span></label></li>';});
+let bk='';BOOK.forEach(b=>{const links=b.u.map(u=>'<a target="_blank" rel="noopener" href="'+u[1]+'">'+u[0]+'</a>').join(' · ');
+ bk+='<li><span class="what">'+b.w+'</span>'+(links?'<span>'+links+'</span>':'')+'<span class="when">'+b.t+'</span></li>';});
+p0.innerHTML=
+ '<span class="phase-no">0.0</span><h2>Prima di partire</h2>'+
+ '<p class="phase-when">Temperature · bagaglio · prenotazioni</p>'+
+ '<p class="phase-lede">In una sola giornata si passa dal mare a tremilacinquecento metri. Tutto il bagaglio "tecnico" serve per due sole giornate di montagna e per i charcos: il resto è estate normale.</p>'+
+ '<ul class="temps">'+t0+'</ul>'+
+ '<div class="kitgrid"><div class="kit"><h3>Indispensabile</h3><ul>'+k1+'</ul></div>'+
+ '<div class="kit"><h3>Consigliato</h3><ul>'+k2+'</ul>'+
+ '<p class="kit-note">Le spunte restano solo finché la pagina è aperta.</p></div></div>'+
+ '<div class="warnbox"><b>La calima è l\'unica incognita.</b> Se arriva l\'aria sahariana si va a 35–40° con foschia per qualche giorno: in quel caso si rimanda Masca e si fa mare o charco. Si controlla due o tre giorni prima.</div>'+
+ '<h3 style="font-family:var(--font-mono);font-size:var(--text-xs);letter-spacing:.14em;text-transform:uppercase;color:var(--color-accent);margin-top:var(--space-2xl);padding-bottom:var(--space-xs);border-bottom:var(--rule-bold) solid var(--color-ink)">Da prenotare</h3>'+
+ '<ul class="bookings">'+bk+'</ul>';
+host.appendChild(p0);
+
+DAYS.forEach(d=>{
+ const sec=document.createElement('section');
+ sec.className='phase';sec.dataset.day=d.n;sec.style.setProperty('--ph',css(d.v));
+ let legs='';
+ d.stops.forEach((s,i)=>{
+  const id='p'+d.n+'-'+i;
+  let mk='';
+  if(s.kind==='opz')mk+='<span class="mark">opzione</span>';
+  if(s.kind==='base')mk+='<span class="mark">base</span>';
+  if(s.meal)mk+='<span class="mark">'+s.meal+'</span>';
+  if(s.guach)mk+='<span class="mark">guachinche</span>';
+  const go=s.nolink?'<span class="btn mute">al sacco</span>'
+   :'<a class="btn go" target="_blank" rel="noopener" href="'+gmaps(s)+'">Apri in Maps →</a>';
+  legs+='<li class="leg'+(s.meal?' meal':'')+(s.guach?' guach':'')+'" id="c-'+id+'" data-id="'+id+'">'+
+   '<span class="leg-time">'+s.t+'</span><h3>'+s.name+mk+'</h3>'+
+   '<p class="leg-note">'+s.note+'</p><div class="acts">'+go+
+   '<button class="btn" type="button" data-focus="'+id+'">Sulla mappa</button></div></li>';});
+ sec.innerHTML='<span class="phase-no">'+d.no+'</span><h2>'+d.title+'</h2>'+
+  '<p class="phase-when">'+d.dow+' '+d.date+'</p><p class="phase-lede">'+d.lede+'</p>'+
+  '<ul class="legs">'+legs+'</ul>';
+ host.appendChild(sec);});
+
+let live=null;
+function focus(id){const it=marks[id];if(!it)return;
+ if(live)live.classList.remove('on');
+ const c=document.getElementById('c-'+id);if(c){c.classList.add('on');live=c;}
+ map.flyTo(it.m.getLatLng(),14,{duration:.6});it.m.openPopup();
+ document.querySelector('.atlas').scrollIntoView({behavior:'smooth',block:'start'});}
+host.addEventListener('click',e=>{const b=e.target.closest('[data-focus]');if(b)focus(b.dataset.focus);});
+
+/* rail */
+const rail=document.getElementById('rail-inner');
+function chip(label,day,first){const b=document.createElement('button');b.type='button';
+ b.setAttribute('aria-pressed',first?'true':'false');b.textContent=label;
+ b.onclick=()=>filter(day,b);rail.appendChild(b);}
+chip('Tutto',-1,true);chip('0 · Partenza',0,false);
+DAYS.forEach(d=>chip(d.no+' · '+d.dow,d.n,false));
+
+function filter(day,btn){
+ [...rail.children].forEach(c=>c.setAttribute('aria-pressed','false'));
+ btn.setAttribute('aria-pressed','true');
+ const b=[];
+ Object.values(marks).forEach(it=>{const show=(day===-1||it.d===day);
+  if(show){it.m.addTo(map);b.push(it.m.getLatLng());}else map.removeLayer(it.m);});
+ document.querySelectorAll('.phase').forEach(s=>{
+  const dn=+s.dataset.day;s.style.display=(day===-1||dn===day)?'':'none';s.classList.add('seen');});
+ if(day===0){Object.values(marks).forEach(it=>map.removeLayer(it.m));}
+ if(b.length&&day!==0)map.flyToBounds(L.latLngBounds(b).pad(.22),{duration:.6});
+ document.querySelector('.atlas').scrollIntoView({behavior:'smooth',block:'start'});}
+
+document.getElementById('reset').onclick=()=>{
+ [...rail.children].forEach((c,i)=>c.setAttribute('aria-pressed',i===0?'true':'false'));
+ Object.values(marks).forEach(it=>it.m.addTo(map));
+ document.querySelectorAll('.phase').forEach(s=>s.style.display='');
+ map.flyToBounds(L.latLngBounds(all).pad(.1),{duration:.6});};
+
+/* reveal */
+if(matchMedia('(prefers-reduced-motion: no-preference)').matches){
+ const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('seen');io.unobserve(e.target);}}),
+  {rootMargin:'0px 0px -8% 0px'});
+ document.querySelectorAll('.phase').forEach(s=>io.observe(s));
+}else{document.querySelectorAll('.phase').forEach(s=>s.classList.add('seen'));}
+</script>
+</body>
+</html>
